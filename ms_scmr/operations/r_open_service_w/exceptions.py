@@ -1,14 +1,22 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Dict, Type
-
+from enum import IntEnum
 
 from ms_scmr.base import MSSCMRResponseError
-from ms_scmr.operations.r_open_service_w.r_open_service_w_response import ROpenServiceWReturnCode
+
+
+class ROpenServiceWReturnCode(IntEnum):
+    ERROR_SUCCESS = 0
+    ERROR_ACCESS_DENIED = 5
+    ERROR_INVALID_HANDLE = 6
+    ERROR_INVALID_NAME = 123
+    ERROR_SERVICE_DOES_NOT_EXIST = 1060
+    ERROR_SHUTDOWN_IN_PROGRESS = 1115
 
 
 class ROpenServiceWError(MSSCMRResponseError, ABC):
-    RETURN_CODE_TO_ERROR_CLASS: Dict[ROpenServiceWReturnCode, Type[ROpenServiceWError]] = NotImplemented
+    RETURN_CODE_TO_ERROR_CLASS: Dict[ROpenServiceWReturnCode, Type[ROpenServiceWError]] = {}
 
 
 class AccessDeniedError(ROpenServiceWError):
@@ -36,10 +44,10 @@ class ShutdownInProgressError(ROpenServiceWError):
     DESCRIPTION = 'The system is shutting down.'
 
 
-ROpenServiceWError.RETURN_CODE_TO_ERROR_CLASS = {
+ROpenServiceWError.RETURN_CODE_TO_ERROR_CLASS.update({
     ROpenServiceWReturnCode.ERROR_ACCESS_DENIED: AccessDeniedError,
     ROpenServiceWReturnCode.ERROR_INVALID_HANDLE: InvalidHandleError,
     ROpenServiceWReturnCode.ERROR_INVALID_NAME: InvalidNameError,
     ROpenServiceWReturnCode.ERROR_SERVICE_DOES_NOT_EXIST: ServiceDoesNotExistError,
     ROpenServiceWReturnCode.ERROR_SHUTDOWN_IN_PROGRESS: ShutdownInProgressError
-}
+})
