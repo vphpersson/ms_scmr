@@ -1,13 +1,21 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Dict, Type
+from enum import IntEnum
 
 from ms_scmr.base import MSSCMRResponseError
-from ms_scmr.operations.r_open_sc_manager_w.r_open_sc_manager_w_response import ROpenSCManagerWReturnCode
+
+
+class ROpenSCManagerWReturnCode(IntEnum):
+    ERROR_SUCCESS = 0
+    ERROR_ACCESS_DENIED = 5
+    ERROR_INVALID_NAME = 123
+    ERROR_DATABASE_DOES_NOT_EXIST = 1065
+    ERROR_SHUTDOWN_IN_PROGRESS = 1115
 
 
 class ROpenSCManagerWError(MSSCMRResponseError, ABC):
-    RETURN_CODE_TO_ERROR_CLASS: Dict[ROpenSCManagerWReturnCode, Type[ROpenSCManagerWError]] = NotImplemented
+    RETURN_CODE_TO_ERROR_CLASS: Dict[ROpenSCManagerWReturnCode, Type[ROpenSCManagerWError]] = {}
 
 
 class AccessDeniedError(ROpenSCManagerWError):
@@ -31,9 +39,9 @@ class ShutdownInProgressError(ROpenSCManagerWError):
     DESCRIPTION = 'The system is shutting down.'
 
 
-ROpenSCManagerWError.RETURN_CODE_TO_ERROR_CLASS = {
+ROpenSCManagerWError.RETURN_CODE_TO_ERROR_CLASS.update({
     ROpenSCManagerWReturnCode.ERROR_ACCESS_DENIED: AccessDeniedError,
     ROpenSCManagerWReturnCode.ERROR_INVALID_NAME: InvalidNameError,
     ROpenSCManagerWReturnCode.ERROR_DATABASE_DOES_NOT_EXIST: DatabaseDoesNotExistError,
     ROpenSCManagerWReturnCode.ERROR_SHUTDOWN_IN_PROGRESS: ShutdownInProgressError
-}
+})

@@ -1,20 +1,20 @@
-from ms_scmr.operations.r_open_service_w import ROpenServiceWResponse, ROpenServiceWReturnCode
+from ms_scmr.operations.r_open_sc_manager_w import ROpenSCManagerWResponse, ROpenSCManagerWReturnCode
 
 
 class TestRequestDeserialization:
-    RESPONSE = ROpenServiceWResponse.from_bytes(
+    RESPONSE = ROpenSCManagerWResponse.from_bytes(
         data=bytes.fromhex(
-            '0000000007d4db68e435494aa633267065a4afc000000000'
+            '000000001bbd651ba6076942866436f4a486985f00000000'
         )
     )
 
-    def test_service_handle(self, response: ROpenServiceWResponse = RESPONSE):
-        assert response.service_handle == bytes.fromhex('0000000007d4db68e435494aa633267065a4afc0')
+    def test_sc_handle(self, response: ROpenSCManagerWResponse = RESPONSE):
+        assert response.sc_handle == bytes.fromhex('000000001bbd651ba6076942866436f4a486985f')
 
-    def test_return_code(self, response: ROpenServiceWResponse = RESPONSE):
-        assert response.return_code is ROpenServiceWReturnCode.ERROR_SUCCESS
+    def test_return_code(self, response: ROpenSCManagerWResponse = RESPONSE):
+        assert response.return_code is ROpenSCManagerWReturnCode.ERROR_SUCCESS
 
     def test_redeserialization(self):
-        response = ROpenServiceWResponse.from_bytes(data=bytes(self.RESPONSE))
-        self.test_service_handle(response=response)
+        response = ROpenSCManagerWResponse.from_bytes(data=bytes(self.RESPONSE))
+        self.test_sc_handle(response=response)
         self.test_return_code(response=response)
