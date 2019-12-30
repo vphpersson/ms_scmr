@@ -1,7 +1,7 @@
 from ms_scmr.operations.r_open_service_w import ROpenServiceWResponse, ROpenServiceWReturnCode
 
 
-class TestRequestDeserialization:
+class TestResponseDeserialization:
     RESPONSE = ROpenServiceWResponse.from_bytes(
         data=bytes.fromhex(
             '0000000007d4db68e435494aa633267065a4afc000000000'
