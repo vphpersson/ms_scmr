@@ -1,7 +1,7 @@
 from ms_scmr.operations.r_open_sc_manager_w import ROpenSCManagerWResponse, ROpenSCManagerWReturnCode
 
 
-class TestRequestDeserialization:
+class TestResponseDeserialization:
     RESPONSE = ROpenSCManagerWResponse.from_bytes(
         data=bytes.fromhex(
             '000000001bbd651ba6076942866436f4a486985f00000000'
