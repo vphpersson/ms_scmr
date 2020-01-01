@@ -7,6 +7,7 @@ from struct import unpack as struct_unpack, pack as struct_pack
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import Pointer, NullPointer, ConformantVaryingString, UnidimensionalConformantArray
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from rpc.utils.ndr import calculate_pad_length, pad as ndr_pad
 
 from ms_scmr.operations.r_change_service_config_w.exceptions import RChangeServiceConfigWError, RChangeServiceConfigWReturnCode
 from ms_scmr.operations import Operation
@@ -24,14 +25,6 @@ class RChangeServiceConfigWRequestBase(ClientProtocolRequestBase, ABC):
 
 class RChangeServiceConfigWResponseBase(ClientProtocolResponseBase, ABC):
     ERROR_CLASS: Final[Type[RChangeServiceConfigWError]] = RChangeServiceConfigWError
-
-
-def calc_pad_length(curr_len: int, multiple: int = 4) -> int:
-    return (-curr_len % multiple) + curr_len
-
-
-def pad(data: bytes, multiple: int = 4, fillchar: bytes = b'\x00') -> bytes:
-    return data.ljust(calc_pad_length(curr_len=len(data), multiple=multiple), fillchar)
 
 
 @dataclass
@@ -84,7 +77,7 @@ class RChangeServiceConfigWRequest(RChangeServiceConfigWRequestBase):
             else:
                 kwargs[attribute_name] = attribute_ndr.representation if attribute_ndr is not None else None
 
-            offset += calc_pad_length(curr_len=attribute_pointer.structure_size+attribute_len, multiple=4)
+            offset += calculate_pad_length(length_unpadded=attribute_pointer.structure_size+attribute_len, multiple=4)
 
         service_type_int_val: int = struct_unpack('<I', data[20:24])[0]
         start_type_int_val: int = struct_unpack('<I', data[24:28])[0]
@@ -123,34 +116,34 @@ class RChangeServiceConfigWRequest(RChangeServiceConfigWRequestBase):
             struct_pack('<I', self.service_type.value if self.service_type is not None else SERVICE_NO_CHANGE),
             struct_pack('<I', self.start_type.value if self.start_type is not None else SERVICE_NO_CHANGE),
             struct_pack('<I', self.error_control if self.error_control is not None else SERVICE_NO_CHANGE),
-            pad(
+            ndr_pad(
                 data=bytes(
                     Pointer(representation=ConformantVaryingString(representation=self.binary_path_name))
                     if self.binary_path_name is not None else NullPointer()
                 )
             ),
-            pad(
+            ndr_pad(
                 data=bytes(
                     Pointer(representation=ConformantVaryingString(representation=self.load_order_group))
                     if self.load_order_group is not None else NullPointer()
                 )
             ),
             struct_pack('<I', self.tag_id),
-            pad(data=bytes(dependencies_ndr)),
+            ndr_pad(data=bytes(dependencies_ndr)),
             struct_pack(
                 '<I',
-                (len(dependencies_ndr.representation) - UnidimensionalConformantArray.STRUCTURE_SIZE) if isinstance(dependencies_ndr, Pointer) else 0
+                (0 if isinstance(dependencies_ndr, NullPointer) else len(dependencies_ndr.representation) - UnidimensionalConformantArray.STRUCTURE_SIZE)
             ),
-            pad(
+            ndr_pad(
                 data=bytes(
                     Pointer(representation=ConformantVaryingString(representation=self.service_start_name))
                     if self.service_start_name is not None else NullPointer()
                 )
             ),
-            pad(data=bytes(password_ndr)),
+            ndr_pad(data=bytes(password_ndr)),
             struct_pack(
                 '<I',
-                (len(password_ndr.representation) - UnidimensionalConformantArray.STRUCTURE_SIZE) if isinstance(password_ndr, Pointer) else 0
+                (0 if isinstance(password_ndr, NullPointer) else len(password_ndr.representation) - UnidimensionalConformantArray.STRUCTURE_SIZE)
             ),
             bytes(
                 Pointer(representation=ConformantVaryingString(representation=self.display_name))
@@ -192,18 +185,3 @@ async def r_change_service_config_w(
     """
 
     return await obtain_response(rpc_connection=rpc_connection, request=request, raise_exception=raise_exception)
-
-
-
-r = RChangeServiceConfigWRequest(
-                                service_handle=20 * b'A'
-                            )
-
-m = bytes(r)
-a = 3
-
-
-# b'\x00\x00\x00\x00\xac\x1f\x08\xfb\x7fZ\x02N\xb9\xbe.4\xc0@\xa0\xca\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00'
-
-# '00000000ac1f08fb7f5a024eb9be2e34c040a0caffffffffffffffffffffffff000000000000000000000000000000000400000000000000000000000400000000000000'
-# '00000000fbfb63ce960b004598cd5716e7c393d1ffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000'
