@@ -1,17 +1,19 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
-from typing import Final, Type, ClassVar
+from typing import Final, Type
 from enum import Enum
 from struct import pack as struct_pack, unpack as struct_unpack
-
-from .exceptions import ROpenSCManagerWError, ROpenSCManagerWReturnCode
-from ms_scmr.operations import Operation
-from ms_scmr.structures.service_access import ServiceAccessFlagMask
+from contextlib import asynccontextmanager
 
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import ConformantVaryingString, Pointer
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+
+from .exceptions import ROpenSCManagerWError, ROpenSCManagerWReturnCode
+from ms_scmr.operations import Operation
+from ms_scmr.structures.service_access import ServiceAccessFlagMask
+from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
 
 
 class ROpenSCManagerWRequestBase(ClientProtocolRequestBase, ABC):
@@ -75,24 +77,25 @@ class ROpenSCManagerWRequest(ROpenSCManagerWRequestBase):
 
 @dataclass
 class ROpenSCManagerWResponse(ROpenSCManagerWResponseBase):
-    sc_handle: bytes
+    scm_handle: bytes
     return_code: ROpenSCManagerWReturnCode
 
     @classmethod
     def from_bytes(cls, data: bytes) -> ROpenSCManagerWResponse:
         return cls(
-            sc_handle=data[:20],
+            scm_handle=data[:20],
             return_code=ROpenSCManagerWReturnCode(struct_unpack('<I', data[20:24])[0])
         )
 
     def __bytes__(self) -> bytes:
-        return self.sc_handle + struct_pack('<I', self.return_code.value)
+        return self.scm_handle + struct_pack('<I', self.return_code.value)
 
 
 ROpenSCManagerWResponse.REQUEST_CLASS = ROpenSCManagerWRequest
 ROpenSCManagerWRequest.RESPONSE_CLASS = ROpenSCManagerWResponse
 
 
+@asynccontextmanager
 async def r_open_sc_manager_w(
     rpc_connection: RPCConnection,
     request: ROpenSCManagerWRequest,
@@ -104,7 +107,20 @@ async def r_open_sc_manager_w(
     :param rpc_connection: An RPC connection with which to perform the operation.
     :param request: The operation request.
     :param raise_exception: Whether to raise an exception in case the return code indicates an error has occurred.
-    :return: A corresponding response to the request
+    :return: A response corresponding to the request.
     """
 
-    return await obtain_response(rpc_connection=rpc_connection, request=request, raise_exception=raise_exception)
+    r_open_sc_manager_w_response: ROpenSCManagerWResponse = await obtain_response(
+        rpc_connection=rpc_connection,
+        request=request,
+        raise_exception=raise_exception
+    )
+
+    yield r_open_sc_manager_w_response
+
+    await r_close_service_handle(
+        rpc_connection=rpc_connection,
+        request=RCloseServiceHandleRequest(
+            service_handle=r_open_sc_manager_w_response.scm_handle
+        )
+    )
