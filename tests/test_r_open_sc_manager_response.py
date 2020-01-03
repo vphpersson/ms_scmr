@@ -9,7 +9,7 @@ class TestResponseDeserialization:
     )
 
     def test_sc_handle(self, response: ROpenSCManagerWResponse = RESPONSE):
-        assert response.sc_handle == bytes.fromhex('000000001bbd651ba6076942866436f4a486985f')
+        assert response.scm_handle == bytes.fromhex('000000001bbd651ba6076942866436f4a486985f')
 
     def test_return_code(self, response: ROpenSCManagerWResponse = RESPONSE):
         assert response.return_code is ROpenSCManagerWReturnCode.ERROR_SUCCESS
