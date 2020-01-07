@@ -28,6 +28,6 @@ class TestRequestDeserialization:
 
     def test_redeserialization(self):
         request = ROpenSCManagerWRequest.from_bytes(data=bytes(self.REQUEST))
-        assert self.test_machine_name(request=request) or True
-        assert self.test_database_name(request=request) or True
-        assert self.test_desired_access(request=request) or True
+        assert self.test_machine_name(request=request)
+        assert self.test_database_name(request=request)
+        assert self.test_desired_access(request=request)

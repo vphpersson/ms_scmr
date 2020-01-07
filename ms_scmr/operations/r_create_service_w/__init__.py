@@ -85,7 +85,7 @@ class RCreateServiceWRequest(RCreateServiceWRequestBase):
                 )
                 attribute_len = len(attribute_ndr) if attribute_ndr is not None else 0
 
-                if attribute_name == 'dependencies' and attribute_ndr is not None:
+                if attribute_name == 'dependencies':
                     kwargs[attribute_name] = tuple(
                         b''.join(attribute_ndr.representation).decode(encoding='utf-16-le').split('\x00')
                     ) if attribute_ndr else tuple()
@@ -198,7 +198,3 @@ async def r_create_service_w(
     """
 
     return await obtain_response(rpc_connection=rpc_connection, request=request, raise_exception=raise_exception)
-
-RCreateServiceWRequest.from_bytes(
-    data=bytes.fromhex('00000000a159a88204ddd347869c7d27737eb46805000000000000000500000057004800410054000000aaaa074700000a000000000000000a0000004900530047004f0049004e0047004f004e000000ff010f0010000000020000000000000011000000000000001100000043003a005c0077006800650065006c00650064005c0068006f007200730065000000bfbf00000000000000000000000000000000000000000000000000000000')
-)
