@@ -115,7 +115,7 @@ class RChangeServiceConfigWRequest(RChangeServiceConfigWRequestBase):
             self.service_handle,
             struct_pack('<I', self.service_type.value if self.service_type is not None else SERVICE_NO_CHANGE),
             struct_pack('<I', self.start_type.value if self.start_type is not None else SERVICE_NO_CHANGE),
-            struct_pack('<I', self.error_control if self.error_control is not None else SERVICE_NO_CHANGE),
+            struct_pack('<I', self.error_control.value if self.error_control is not None else SERVICE_NO_CHANGE),
             ndr_pad(
                 data=bytes(
                     Pointer(representation=ConformantVaryingString(representation=self.binary_path_name))
