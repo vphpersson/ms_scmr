@@ -6,6 +6,7 @@ from msdsalgs.utils import make_mask_class
 
 
 class ServiceAccessFlag(IntFlag):
+    # TODO: This should not exist in the dynamic class, should it?
     SERVICE_ALL_ACCESS = 0x000F01FF
     SERVICE_CHANGE_CONFIG = 0x00000002
     SERVICE_ENUMERATE_DEPENDENTS = 0x00000008

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 from struct import unpack as struct_unpack, pack as struct_pack
 
-from ms_scmr.structures.service_type import ServiceType
+from ms_scmr.structures.service_type import ServiceTypeMask
 
 
 class CurrrentState(IntEnum):
@@ -33,7 +33,8 @@ class ControlsAccepted(IntEnum):
 
 @dataclass
 class ServiceStatus:
-    service_type: ServiceType
+    # TODO: Not all values are permitted to be combined.
+    service_type: ServiceTypeMask
     current_state: CurrrentState
     controls_accepted: ControlsAccepted
     # TODO: Use massive win32 error code enum
@@ -46,7 +47,7 @@ class ServiceStatus:
     @classmethod
     def from_bytes(cls, data: bytes) -> ServiceStatus:
         return cls(
-            service_type=ServiceType(struct_unpack('<I', data[:4])[0]),
+            service_type=ServiceTypeMask.from_mask(struct_unpack('<I', data[:4])[0]),
             current_state=CurrrentState(struct_unpack('<I', data[4:8])[0]),
             controls_accepted=ControlsAccepted(struct_unpack('<I', data[8:12])[0]),
             win_32_exit_code=struct_unpack('<I', data[12:16])[0],
@@ -57,7 +58,7 @@ class ServiceStatus:
 
     def __bytes__(self) -> bytes:
         return b''.join([
-            struct_pack('<I', self.service_type.value),
+            struct_pack('<I', self.service_type.to_mask()),
             struct_pack('<I', self.current_state.value),
             struct_pack('<I', self.controls_accepted.value),
             struct_pack('<I', self.win_32_exit_code),
