@@ -1,8 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
-from typing import Final, Type, Optional, Tuple
+from typing import Final, Type, Optional, Tuple, AsyncContextManager
 from struct import pack as struct_pack, unpack as struct_unpack
+from contextlib import asynccontextmanager
 
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import Pointer, UnidimensionalConformantArray, NullPointer, ConformantVaryingString
@@ -11,6 +12,7 @@ from rpc.utils.ndr import pad as ndr_pad, calculate_pad_length
 
 from ms_scmr.operations.r_create_service_w.exceptions import RCreateServiceWError, RCreateServiceWReturnCode
 from ms_scmr.operations import Operation
+from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
 from ms_scmr.structures.service_type import ServiceType
 from ms_scmr.structures.error_control import ErrorControl
 from ms_scmr.structures.start_type import StartType
@@ -183,11 +185,12 @@ RCreateServiceWResponseBase.REQUEST_CLASS = RCreateServiceWRequest
 RCreateServiceWRequestBase.RESPONSE_CLASS = RCreateServiceWResponse
 
 
+@asynccontextmanager
 async def r_create_service_w(
     rpc_connection: RPCConnection,
     request: RCreateServiceWRequest,
     raise_exception: bool = True
-) -> RCreateServiceWResponse:
+) -> AsyncContextManager[RCreateServiceWResponse]:
     """
     Perform the RCreateServiceW operation.
 
@@ -197,4 +200,17 @@ async def r_create_service_w(
     :return:
     """
 
-    return await obtain_response(rpc_connection=rpc_connection, request=request, raise_exception=raise_exception)
+    r_create_service_w_response = await obtain_response(
+        rpc_connection=rpc_connection,
+        request=request,
+        raise_exception=raise_exception
+    )
+
+    yield r_create_service_w_response
+
+    await r_close_service_handle(
+        rpc_connection=rpc_connection,
+        request=RCloseServiceHandleRequest(
+            service_handle=r_create_service_w_response.service_handle
+        )
+    )

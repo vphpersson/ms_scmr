@@ -24,7 +24,7 @@ class RStartServiceWResponseBase(ClientProtocolResponseBase, ABC):
 @dataclass
 class RStartServiceWRequest(RStartServiceWRequestBase):
     service_handle: bytes
-    argv: Tuple[str, ...]
+    argv: Tuple[str, ...] = tuple()
 
     @property
     def argc(self) -> int:

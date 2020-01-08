@@ -12,8 +12,8 @@ from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientP
 
 from .exceptions import ROpenSCManagerWError, ROpenSCManagerWReturnCode
 from ms_scmr.operations import Operation
-from ms_scmr.structures.service_access import ServiceAccessFlagMask
 from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
+from ms_scmr.structures.sc_manager_access import SCManagerAccessFlagMask
 
 
 class ROpenSCManagerWRequestBase(ClientProtocolRequestBase, ABC):
@@ -31,7 +31,7 @@ class DatabaseName(Enum):
 
 @dataclass
 class ROpenSCManagerWRequest(ROpenSCManagerWRequestBase):
-    desired_access: ServiceAccessFlagMask = ServiceAccessFlagMask()
+    desired_access: SCManagerAccessFlagMask = SCManagerAccessFlagMask(connect=True)
     # It appears that the machine name can be set to any string.
     machine_name: str = ''
     database_name: DatabaseName = DatabaseName.SERVICES_ACTIVE
@@ -48,7 +48,7 @@ class ROpenSCManagerWRequest(ROpenSCManagerWRequestBase):
 
         return cls(
             machine_name=machine_name.representation,
-            desired_access=ServiceAccessFlagMask.from_mask(struct_unpack('<I', data[offset:offset + 4])[0]),
+            desired_access=SCManagerAccessFlagMask.from_mask(struct_unpack('<I', data[offset:offset + 4])[0]),
             database_name=DatabaseName(database_name.representation) if database_name else None
         )
 

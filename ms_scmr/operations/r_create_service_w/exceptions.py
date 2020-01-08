@@ -7,6 +7,7 @@ from ms_scmr.base import MSSCMRResponseError
 
 
 class RCreateServiceWReturnCode(IntEnum):
+    ERROR_SUCCESS = 0
     ERROR_ACCESS_DENIED = 5
     ERROR_INVALID_HANDLE = 6
     ERROR_INVALID_DATA = 13

@@ -1,4 +1,4 @@
-from ms_scmr.operations.r_open_sc_manager_w import ROpenSCManagerWRequest, DatabaseName, ServiceAccessFlagMask
+from ms_scmr.operations.r_open_sc_manager_w import ROpenSCManagerWRequest, DatabaseName, SCManagerAccessFlagMask
 
 
 class TestRequestDeserialization:
@@ -15,19 +15,13 @@ class TestRequestDeserialization:
         assert request.database_name is DatabaseName.SERVICES_ACTIVE
 
     def test_desired_access(self, request: ROpenSCManagerWRequest = REQUEST):
-        expected_service_access_flag = ServiceAccessFlagMask(
-            service_start=True,
-            service_stop=True,
-            service_change_config=True,
-            service_query_config=True,
-            service_query_status=True,
-            service_enumerate_dependents=True
-        )
+        expected_service_access_flag = SCManagerAccessFlagMask()
+        expected_service_access_flag.set_all()
 
         assert request.desired_access.to_mask() == expected_service_access_flag.to_mask()
 
     def test_redeserialization(self):
         request = ROpenSCManagerWRequest.from_bytes(data=bytes(self.REQUEST))
-        assert self.test_machine_name(request=request)
-        assert self.test_database_name(request=request)
-        assert self.test_desired_access(request=request)
+        self.test_machine_name(request=request)
+        self.test_database_name(request=request)
+        self.test_desired_access(request=request)
