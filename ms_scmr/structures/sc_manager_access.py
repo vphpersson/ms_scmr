@@ -1,6 +1,6 @@
 from enum import IntFlag
 
-from msdsalgs.utils import make_mask_class
+from msdsalgs.utils import Mask
 
 
 class SCManagerAccessFlag(IntFlag):
@@ -12,7 +12,7 @@ class SCManagerAccessFlag(IntFlag):
     SC_MANAGER_MODIFY_BOOT_CONFIG = 0x0020
 
 
-SCManagerAccessFlagMask = make_mask_class(
-    int_flag_enum_cls=SCManagerAccessFlag,
+SCManagerAccessFlagMask = Mask.make_class(
+    int_flag_class=SCManagerAccessFlag,
     prefix='SC_MANAGER_'
 )

@@ -1,4 +1,5 @@
-from ms_scmr.operations.r_create_service_w import RCreateServiceWRequest, ServiceType, StartType, ErrorControl, ServiceAccessFlagMask
+from ms_scmr.operations.r_create_service_w import RCreateServiceWRequest, ServiceType, StartType, ErrorControl, \
+    ServiceAccessFlagMask
 from ms_scmr.structures.service_access import ServiceAccessFlag
 
 
@@ -19,7 +20,7 @@ class TestRequestDeserialization:
         assert request.display_name == 'ISGOINGON'
 
     def test_desired_access(self, request: RCreateServiceWRequest = REQUEST):
-        assert request.desired_access.to_mask() == ServiceAccessFlagMask.from_mask(ServiceAccessFlag.SERVICE_ALL_ACCESS).to_mask()
+        assert request.desired_access == ServiceAccessFlagMask.from_int(ServiceAccessFlag.SERVICE_ALL_ACCESS)
 
     def test_service_type(self, request: RCreateServiceWRequest = REQUEST):
         assert request.service_type is ServiceType.SERVICE_WIN32_OWN_PROCESS

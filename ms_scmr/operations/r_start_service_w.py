@@ -1,28 +1,21 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from abc import ABC
-from typing import Final, Type, Tuple, List
+from typing import ClassVar, Tuple, List
 from struct import pack as struct_pack, unpack as struct_unpack
 
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import ConformantVaryingString, Pointer, NullPointer
-from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
+    Win32ErrorCode
 from rpc.utils.ndr import calculate_pad_length, pad as ndr_pad
 
-from .exceptions import RStartServiceWError, RStartServiceWReturnCode
 from ms_scmr.operations import Operation
 
 
-class RStartServiceWRequestBase(ClientProtocolRequestBase, ABC):
-    OPERATION: Final[Operation] = Operation.R_START_SERVICE_W
-
-
-class RStartServiceWResponseBase(ClientProtocolResponseBase, ABC):
-    ERROR_CLASS: Final[Type[RStartServiceWError]] = RStartServiceWError
-
-
 @dataclass
-class RStartServiceWRequest(RStartServiceWRequestBase):
+class RStartServiceWRequest(ClientProtocolRequestBase):
+    OPERATION: ClassVar[Operation] = Operation.R_START_SERVICE_W
+
     service_handle: bytes
     argv: Tuple[str, ...] = tuple()
 
@@ -77,18 +70,18 @@ class RStartServiceWRequest(RStartServiceWRequestBase):
 
 
 @dataclass
-class RStartServiceWResponse(RStartServiceWResponseBase):
+class RStartServiceWResponse(ClientProtocolResponseBase):
 
     @classmethod
     def from_bytes(cls, data: bytes) -> RStartServiceWResponse:
-        return cls(return_code=RStartServiceWReturnCode(struct_unpack('<I', data[:4])[0]))
+        return cls(return_code=Win32ErrorCode(struct_unpack('<I', data[:4])[0]))
 
     def __bytes__(self) -> bytes:
         return struct_pack('<I', self.return_code)
 
 
-RStartServiceWResponseBase.REQUEST_CLASS = RStartServiceWRequest
-RStartServiceWRequestBase.RESPONSE_CLASS = RStartServiceWResponse
+RStartServiceWResponse.REQUEST_CLASS = RStartServiceWRequest
+RStartServiceWRequest.RESPONSE_CLASS = RStartServiceWResponse
 
 
 async def r_start_service_w(

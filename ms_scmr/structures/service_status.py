@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from enum import IntEnum
 from struct import unpack as struct_unpack, pack as struct_pack
 
+from msdsalgs.win32_error import Win32ErrorCode
+
 from ms_scmr.structures.service_type import ServiceTypeMask
 
 
@@ -37,9 +39,7 @@ class ServiceStatus:
     service_type: ServiceTypeMask
     current_state: CurrrentState
     controls_accepted: ControlsAccepted
-    # TODO: Use massive win32 error code enum
-    #   https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
-    win_32_exit_code: int
+    win_32_exit_code: Win32ErrorCode
     service_specific_exit_code: int
     check_point: int
     wait_hint: int
@@ -47,10 +47,10 @@ class ServiceStatus:
     @classmethod
     def from_bytes(cls, data: bytes) -> ServiceStatus:
         return cls(
-            service_type=ServiceTypeMask.from_mask(struct_unpack('<I', data[:4])[0]),
+            service_type=ServiceTypeMask.from_int(struct_unpack('<I', data[:4])[0]),
             current_state=CurrrentState(struct_unpack('<I', data[4:8])[0]),
             controls_accepted=ControlsAccepted(struct_unpack('<I', data[8:12])[0]),
-            win_32_exit_code=struct_unpack('<I', data[12:16])[0],
+            win_32_exit_code=Win32ErrorCode(struct_unpack('<I', data[12:16])[0]),
             service_specific_exit_code=struct_unpack('<I', data[16:20])[0],
             check_point=struct_unpack('<I', data[20:24])[0],
             wait_hint=struct_unpack('<I', data[24:28])[0]
@@ -58,7 +58,7 @@ class ServiceStatus:
 
     def __bytes__(self) -> bytes:
         return b''.join([
-            struct_pack('<I', self.service_type.to_mask()),
+            struct_pack('<I', int(self.service_type)),
             struct_pack('<I', self.current_state.value),
             struct_pack('<I', self.controls_accepted.value),
             struct_pack('<I', self.win_32_exit_code),

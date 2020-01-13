@@ -2,7 +2,7 @@ from enum import IntFlag
 from itertools import chain
 
 from msdsalgs.security_types.access_mask import AccessMask
-from msdsalgs.utils import make_mask_class
+from msdsalgs.utils import Mask
 
 
 class ServiceAccessFlag(IntFlag):
@@ -20,8 +20,8 @@ class ServiceAccessFlag(IntFlag):
     SERVICE_SET_STATUS = 0x00008000
 
 
-ServiceAccessFlagMask = make_mask_class(
-    int_flag_enum_cls=IntFlag(
+ServiceAccessFlagMask = Mask.make_class(
+    int_flag_class=IntFlag(
         'ServiceAccessFlag',
         ((enum_entry.name, enum_entry.value) for enum_entry in chain(AccessMask, ServiceAccessFlag))
     ),

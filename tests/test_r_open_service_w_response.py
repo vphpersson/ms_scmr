@@ -1,4 +1,5 @@
-from ms_scmr.operations.r_open_service_w import ROpenServiceWResponse, ROpenServiceWReturnCode
+from msdsalgs.win32_error import Win32ErrorCode
+from ms_scmr.operations.r_open_service_w import ROpenServiceWResponse
 
 
 class TestResponseDeserialization:
@@ -12,7 +13,7 @@ class TestResponseDeserialization:
         assert response.service_handle == bytes.fromhex('0000000007d4db68e435494aa633267065a4afc0')
 
     def test_return_code(self, response: ROpenServiceWResponse = RESPONSE):
-        assert response.return_code is ROpenServiceWReturnCode.ERROR_SUCCESS
+        assert response.return_code is Win32ErrorCode.ERROR_SUCCESS
 
     def test_redeserialization(self):
         response = ROpenServiceWResponse.from_bytes(data=bytes(self.RESPONSE))

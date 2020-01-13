@@ -18,7 +18,7 @@ class TestRequestDeserialization:
         expected_service_access_flag = SCManagerAccessFlagMask()
         expected_service_access_flag.set_all()
 
-        assert request.desired_access.to_mask() == expected_service_access_flag.to_mask()
+        assert request.desired_access == expected_service_access_flag
 
     def test_redeserialization(self):
         request = ROpenSCManagerWRequest.from_bytes(data=bytes(self.REQUEST))

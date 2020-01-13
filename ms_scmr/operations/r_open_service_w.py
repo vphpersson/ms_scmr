@@ -1,30 +1,24 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from abc import ABC
-from typing import Final, Type, AsyncContextManager
+from typing import ClassVar, AsyncContextManager
 from struct import unpack as struct_unpack, pack as struct_pack
 from contextlib import asynccontextmanager
 
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import ConformantVaryingString
-from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
+    Win32ErrorCode
+from rpc.utils.ndr import pad as ndr_pad
 
-from .exceptions import ROpenServiceWError, ROpenServiceWReturnCode
 from ms_scmr.operations import Operation
 from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
 from ms_scmr.structures.service_access import ServiceAccessFlagMask
 
 
-class ROpenServiceWRequestBase(ClientProtocolRequestBase, ABC):
-    OPERATION: Final[Operation] = Operation.R_OPEN_SERVICE_W
-
-
-class ROpenServiceWResponseBase(ClientProtocolResponseBase, ABC):
-    ERROR_CLASS: Final[Type[ROpenServiceWError]] = ROpenServiceWError
-
-
 @dataclass
-class ROpenServiceWRequest(ROpenServiceWRequestBase):
+class ROpenServiceWRequest(ClientProtocolRequestBase):
+    OPERATION: ClassVar[Operation] = Operation.R_OPEN_SERVICE_W
+
     sc_manager_handle: bytes
     service_name: str
     desired_access: ServiceAccessFlagMask
@@ -39,7 +33,7 @@ class ROpenServiceWRequest(ROpenServiceWRequestBase):
         service_name_len: int = len(service_name)
         offset += service_name_len + ((4 - (service_name_len % 4)) % 4)
 
-        desired_access = ServiceAccessFlagMask.from_mask(struct_unpack('<I', data[offset:offset+4])[0])
+        desired_access = ServiceAccessFlagMask.from_int(struct_unpack('<I', data[offset:offset+4])[0])
 
         return cls(
             sc_manager_handle=sc_manager_handle,
@@ -53,22 +47,20 @@ class ROpenServiceWRequest(ROpenServiceWRequestBase):
 
         return b''.join([
             self.sc_manager_handle,
-            service_name_bytes,
-            ((4 - (len(service_name_bytes) % 4)) % 4) * b'\x00',
-            struct_pack('<I', self.desired_access.to_mask())
+            ndr_pad(service_name_bytes),
+            struct_pack('<I', int(self.desired_access))
         ])
 
 
 @dataclass
-class ROpenServiceWResponse(ROpenServiceWResponseBase):
+class ROpenServiceWResponse(ClientProtocolResponseBase):
     service_handle: bytes
-    return_code: ROpenServiceWReturnCode
 
     @classmethod
     def from_bytes(cls, data: bytes) -> ROpenServiceWResponse:
         return cls(
             service_handle=data[:20],
-            return_code=ROpenServiceWReturnCode(struct_unpack('<I', data[20:24])[0])
+            return_code=Win32ErrorCode(struct_unpack('<I', data[20:24])[0])
         )
 
     def __bytes__(self) -> bytes:
