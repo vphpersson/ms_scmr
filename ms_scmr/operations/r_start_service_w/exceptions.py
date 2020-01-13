@@ -6,6 +6,7 @@ from ms_scmr.base import MSSCMRResponseError
 
 
 class RStartServiceWReturnCode(IntEnum):
+    ERROR_SUCCESS = 0
     ERROR_FILE_NOT_FOUND = 2
     ERROR_PATH_NOT_FOUND = 3
     ERROR_ACCESS_DENIED = 5
