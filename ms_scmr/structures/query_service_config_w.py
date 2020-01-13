@@ -39,41 +39,6 @@ class QueryServiceConfigW:
             ndr_string_len = len(ndr_string)
             offset_variable += ndr_string_len + ((4 - (ndr_string_len % 4)) % 4)
 
-        # binary_path_name_pointer = Pointer(
-        #     representation=ConformantVaryingString.from_bytes(data=data[offset_variable:]),
-        #     referent_id=struct_unpack('<I', data[12:16])[0]
-        # )
-        # binary_path_name_len = len(binary_path_name_pointer.representation)
-        # offset_variable += binary_path_name_len + ((4 - (binary_path_name_len % 4)) % 4)
-        #
-        # loader_order_group_pointer = Pointer(
-        #     representation=ConformantVaryingString.from_bytes(data=data[offset_variable:]),
-        #     referent_id=struct_unpack('<I', data[16:20])[0]
-        # )
-        # loader_order_group_len = len(loader_order_group_pointer.representation)
-        # offset_variable += loader_order_group_len + ((4 - (loader_order_group_len % 4)) % 4)
-        #
-        # dependencies_pointer = Pointer(
-        #     representation=ConformantVaryingString.from_bytes(data=data[offset_variable:]),
-        #     referent_id=struct_unpack('<I', data[24:28])[0]
-        # )
-        # dependencies_len = len(dependencies_pointer.representation)
-        # offset_variable += dependencies_len + ((4 - (dependencies_len % 4)) % 4)
-        #
-        # service_start_name_pointer = Pointer(
-        #     representation=ConformantVaryingString.from_bytes(data=data[offset_variable:]),
-        #     referent_id=struct_unpack('<I', data[28:32])[0]
-        # )
-        # service_start_name_len = len(service_start_name_pointer.representation)
-        # offset_variable += service_start_name_len + ((4 - (service_start_name_len % 4)) % 4)
-        #
-        # display_name_pointer = Pointer(
-        #     representation=ConformantVaryingString.from_bytes(data=data[offset_variable:]),
-        #     referent_id=struct_unpack('<I', data[32:36])[0]
-        # )
-        # display_name_len = len(display_name_pointer.representation)
-        # offset_variable += display_name_len + ((4 - (display_name_len % 4)) % 4)
-
         return (
             cls(
                 service_type=ServiceType.from_bytes(bytes=data[:4], byteorder='little'),
