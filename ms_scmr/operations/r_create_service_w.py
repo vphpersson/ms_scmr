@@ -1,16 +1,15 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from abc import ABC
-from typing import Final, Type, Optional, Tuple, AsyncContextManager
+from typing import Optional, Tuple, AsyncContextManager, ClassVar
 from struct import pack as struct_pack, unpack as struct_unpack
 from contextlib import asynccontextmanager
 
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import Pointer, UnidimensionalConformantArray, NullPointer, ConformantVaryingString
-from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
+    Win32ErrorCode
 from rpc.utils.ndr import pad as ndr_pad, calculate_pad_length
 
-from ms_scmr.operations.r_create_service_w.exceptions import RCreateServiceWError, RCreateServiceWReturnCode
 from ms_scmr.operations import Operation
 from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
 from ms_scmr.structures.service_type import ServiceType
@@ -19,16 +18,10 @@ from ms_scmr.structures.start_type import StartType
 from ms_scmr.structures.service_access import ServiceAccessFlagMask
 
 
-class RCreateServiceWRequestBase(ClientProtocolRequestBase, ABC):
-    OPERATION: Final[Operation] = Operation.R_CREATE_SERVICE_W
-
-
-class RCreateServiceWResponseBase(ClientProtocolResponseBase, ABC):
-    ERROR_CLASS: Final[Type[RCreateServiceWError]] = RCreateServiceWError
-
-
 @dataclass
-class RCreateServiceWRequest(RCreateServiceWRequestBase):
+class RCreateServiceWRequest(ClientProtocolRequestBase):
+    OPERATION: ClassVar[Operation] = Operation.R_CREATE_SERVICE_W
+
     scm_handle: bytes
     service_name: str
     display_name: str
@@ -50,7 +43,7 @@ class RCreateServiceWRequest(RCreateServiceWRequestBase):
         attribute_name_class_pair = (
             ('service_name', ConformantVaryingString),
             ('display_name', ConformantVaryingString),
-            ('desired_access', ServiceAccessFlagMask.from_mask),
+            ('desired_access', ServiceAccessFlagMask.from_int),
             ('service_type', ServiceType),
             ('start_type', StartType),
             ('error_control', ErrorControl),
@@ -127,7 +120,7 @@ class RCreateServiceWRequest(RCreateServiceWRequestBase):
             self.scm_handle,
             ndr_pad(data=bytes(ConformantVaryingString(representation=self.service_name))),
             ndr_pad(data=bytes(Pointer(representation=ConformantVaryingString(representation=self.display_name)))),
-            struct_pack('<I', self.desired_access.to_mask()),
+            struct_pack('<I', int(self.desired_access)),
             struct_pack('<I', self.service_type.value),
             struct_pack('<I', self.start_type.value),
             struct_pack('<I', self.error_control.value),
@@ -161,7 +154,7 @@ class RCreateServiceWRequest(RCreateServiceWRequestBase):
 
 
 @dataclass
-class RCreateServiceWResponse(RCreateServiceWResponseBase):
+class RCreateServiceWResponse(ClientProtocolResponseBase):
     tag_id: int
     service_handle: bytes
 
@@ -170,7 +163,7 @@ class RCreateServiceWResponse(RCreateServiceWResponseBase):
         return cls(
             tag_id=struct_unpack('<I', data[:4])[0],
             service_handle=data[4:24],
-            return_code=RCreateServiceWReturnCode(struct_unpack('<I', data[24:28])[0])
+            return_code=Win32ErrorCode(struct_unpack('<I', data[24:28])[0])
         )
 
     def __bytes__(self) -> bytes:
@@ -181,8 +174,8 @@ class RCreateServiceWResponse(RCreateServiceWResponseBase):
         ])
 
 
-RCreateServiceWResponseBase.REQUEST_CLASS = RCreateServiceWRequest
-RCreateServiceWRequestBase.RESPONSE_CLASS = RCreateServiceWResponse
+RCreateServiceWResponse.REQUEST_CLASS = RCreateServiceWRequest
+RCreateServiceWRequest.RESPONSE_CLASS = RCreateServiceWResponse
 
 
 @asynccontextmanager
@@ -200,7 +193,7 @@ async def r_create_service_w(
     :return:
     """
 
-    r_create_service_w_response = await obtain_response(
+    r_create_service_w_response: RCreateServiceWResponse = await obtain_response(
         rpc_connection=rpc_connection,
         request=request,
         raise_exception=raise_exception

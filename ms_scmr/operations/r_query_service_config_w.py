@@ -1,27 +1,20 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from abc import ABC
-from typing import Final, Type, Optional
+from typing import ClassVar, Optional
 from struct import unpack as struct_unpack, pack as struct_pack, error as struct_error
 
 from rpc.connection import Connection as RPCConnection
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from msdsalgs.win32_error import Win32ErrorCode, ErrorInsufficientBufferError
 
-from .exceptions import RQueryServiceConfigErrorW, RQueryServiceConfigWReturnCode, InsufficientBufferError
 from ms_scmr.operations import Operation
 from ms_scmr.structures.query_service_config_w import QueryServiceConfigW
 
 
-class RQueryServiceConfigWRequestBase(ClientProtocolRequestBase, ABC):
-    OPERATION: Final[Operation] = Operation.R_QUERY_SERVICE_CONFIG_W
-
-
-class RQueryServiceConfigWResponseBase(ClientProtocolResponseBase, ABC):
-    ERROR_CLASS: Final[Type[RQueryServiceConfigErrorW]] = RQueryServiceConfigErrorW
-
-
 @dataclass
-class RQueryServiceConfigWRequest(RQueryServiceConfigWRequestBase):
+class RQueryServiceConfigWRequest(ClientProtocolRequestBase):
+    OPERATION: ClassVar[Operation] = Operation.R_QUERY_SERVICE_CONFIG_W
+
     service_handle: bytes
     buf_size: int = 0
 
@@ -37,7 +30,7 @@ class RQueryServiceConfigWRequest(RQueryServiceConfigWRequestBase):
 
 
 @dataclass
-class RQueryServiceConfigWResponse(RQueryServiceConfigWResponseBase):
+class RQueryServiceConfigWResponse(ClientProtocolResponseBase):
     service_config: Optional[QueryServiceConfigW]
     bytes_needed: int
 
@@ -53,10 +46,7 @@ class RQueryServiceConfigWResponse(RQueryServiceConfigWResponseBase):
         return cls(
             service_config=service_config,
             bytes_needed=struct_unpack('<I', data[offset:offset+4])[0],
-            return_code=RQueryServiceConfigWReturnCode.from_bytes(
-                bytes=data[offset+4:offset+8],
-                byteorder='little'
-            )
+            return_code=Win32ErrorCode(struct_unpack('<I', data[offset+4:offset+8])[0])
         )
 
     def __bytes__(self) -> bytes:
@@ -67,8 +57,8 @@ class RQueryServiceConfigWResponse(RQueryServiceConfigWResponseBase):
         ])
 
 
-RQueryServiceConfigWRequestBase.RESPONSE_CLASS = RQueryServiceConfigWResponse
-RQueryServiceConfigWResponseBase.REQUEST_CLASS = RQueryServiceConfigWRequest
+RQueryServiceConfigWRequest.RESPONSE_CLASS = RQueryServiceConfigWResponse
+RQueryServiceConfigWResponse.REQUEST_CLASS = RQueryServiceConfigWRequest
 
 
 async def r_query_service_config_w(
@@ -92,7 +82,7 @@ async def r_query_service_config_w(
             request=request,
             raise_exception=raise_exception
         )
-    except InsufficientBufferError as e:
+    except ErrorInsufficientBufferError as e:
         if retry_buf_size:
             request.buf_size = e.response.bytes_needed
             return await r_query_service_config_w(

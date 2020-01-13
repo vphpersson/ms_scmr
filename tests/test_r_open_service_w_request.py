@@ -15,7 +15,7 @@ class TestRequestDeserialization:
         assert request.service_name == 'RemoteRegistry'
 
     def test_desired_access(self, request: ROpenServiceWRequest = REQUEST):
-        assert request.desired_access.to_mask() == ServiceAccessFlagMask(service_query_status=True).to_mask()
+        assert request.desired_access == ServiceAccessFlagMask(service_query_status=True)
 
     def test_redeserialization(self):
         request = ROpenServiceWRequest.from_bytes(data=bytes(self.REQUEST))

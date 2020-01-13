@@ -1,26 +1,19 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from abc import ABC
-from typing import Final, Type
+from typing import ClassVar
 from struct import pack as struct_pack, unpack as struct_unpack
 
-from .exceptions import RDeleteServiceError, RDeleteServiceReturnCode
-from ms_scmr.operations import Operation
-
 from rpc.connection import Connection as RPCConnection
-from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
+    Win32ErrorCode
 
-
-class RDeleteServiceRequestBase(ClientProtocolRequestBase, ABC):
-    OPERATION: Final[Operation] = Operation.R_DELETE_SERVICE
-
-
-class RDeleteServiceResponseBase(ClientProtocolResponseBase, ABC):
-    ERROR_CLASS: Final[Type[RDeleteServiceError]] = RDeleteServiceError
+from ms_scmr.operations import Operation
 
 
 @dataclass
-class RDeleteServiceRequest(RDeleteServiceRequestBase):
+class RDeleteServiceRequest(ClientProtocolRequestBase):
+    OPERATION: ClassVar[Operation] = Operation.R_DELETE_SERVICE
+
     service_handle: bytes
 
     @classmethod
@@ -32,22 +25,22 @@ class RDeleteServiceRequest(RDeleteServiceRequestBase):
 
 
 @dataclass
-class RDeleteServiceResponse(RDeleteServiceResponseBase):
+class RDeleteServiceResponse(ClientProtocolResponseBase):
     service_handle: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> RDeleteServiceResponse:
         return cls(
             service_handle=data[:20],
-            return_code=RDeleteServiceReturnCode(struct_unpack('<I', data[20:24])[0])
+            return_code=Win32ErrorCode(struct_unpack('<I', data[20:24])[0])
         )
 
     def __bytes__(self) -> bytes:
         return self.service_handle + struct_pack('<I', self.return_code.value)
 
 
-RDeleteServiceResponseBase.REQUEST_CLASS = RDeleteServiceRequest
-RDeleteServiceRequestBase.RESPONSE_CLASS = RDeleteServiceResponse
+RDeleteServiceResponse.REQUEST_CLASS = RDeleteServiceRequest
+RDeleteServiceRequest.RESPONSE_CLASS = RDeleteServiceResponse
 
 
 async def r_delete_service(

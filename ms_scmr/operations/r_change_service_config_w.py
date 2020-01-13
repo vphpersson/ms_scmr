@@ -1,15 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from abc import ABC
-from typing import Final, Type, Optional, Tuple, ClassVar
+from typing import Optional, Tuple, ClassVar
 from struct import unpack as struct_unpack, pack as struct_pack
 
 from rpc.connection import Connection as RPCConnection
 from rpc.ndr import Pointer, NullPointer, ConformantVaryingString, UnidimensionalConformantArray
-from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response
+from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, Win32ErrorCode
 from rpc.utils.ndr import calculate_pad_length, pad as ndr_pad
 
-from ms_scmr.operations.r_change_service_config_w.exceptions import RChangeServiceConfigWError, RChangeServiceConfigWReturnCode
 from ms_scmr.operations import Operation
 from ms_scmr.structures.service_type import ServiceType
 from ms_scmr.structures.start_type import StartType
@@ -19,16 +17,9 @@ from ms_scmr.structures.error_control import ErrorControl
 SERVICE_NO_CHANGE = 0xFFFFFFFF
 
 
-class RChangeServiceConfigWRequestBase(ClientProtocolRequestBase, ABC):
-    OPERATION: Final[Operation] = Operation.R_CHANGE_SERVICE_CONFIG_W
-
-
-class RChangeServiceConfigWResponseBase(ClientProtocolResponseBase, ABC):
-    ERROR_CLASS: Final[Type[RChangeServiceConfigWError]] = RChangeServiceConfigWError
-
-
 @dataclass
-class RChangeServiceConfigWRequest(RChangeServiceConfigWRequestBase):
+class RChangeServiceConfigWRequest(ClientProtocolRequestBase):
+    OPERATION: ClassVar[Operation] = Operation.R_CHANGE_SERVICE_CONFIG_W
     STRUCTURE_SIZE: ClassVar[int] = 32
 
     service_handle: bytes
@@ -153,22 +144,22 @@ class RChangeServiceConfigWRequest(RChangeServiceConfigWRequestBase):
 
 
 @dataclass
-class RChangeServiceConfigWResponse(RChangeServiceConfigWResponseBase):
+class RChangeServiceConfigWResponse(ClientProtocolResponseBase):
     tag_id: int = 0
 
     @classmethod
     def from_bytes(cls, data: bytes) -> RChangeServiceConfigWResponse:
         return cls(
             tag_id=struct_unpack('<I', data[:4])[0],
-            return_code=RChangeServiceConfigWReturnCode(struct_unpack('<I', data[4:8])[0])
+            return_code=Win32ErrorCode(struct_unpack('<I', data[4:8])[0])
         )
 
     def __bytes__(self) -> bytes:
         return struct_pack('<I', self.tag_id) + struct_pack('<I', self.return_code.value)
 
 
-RChangeServiceConfigWRequestBase.RESPONSE_CLASS = RChangeServiceConfigWResponse
-RChangeServiceConfigWResponseBase.REQUEST_CLASS = RChangeServiceConfigWRequest
+RChangeServiceConfigWRequest.RESPONSE_CLASS = RChangeServiceConfigWResponse
+RChangeServiceConfigWResponse.REQUEST_CLASS = RChangeServiceConfigWRequest
 
 
 async def r_change_service_config_w(
