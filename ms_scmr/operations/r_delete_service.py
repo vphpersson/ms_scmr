@@ -26,17 +26,15 @@ class RDeleteServiceRequest(ClientProtocolRequestBase):
 
 @dataclass
 class RDeleteServiceResponse(ClientProtocolResponseBase):
-    service_handle: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> RDeleteServiceResponse:
         return cls(
-            service_handle=data[:20],
-            return_code=Win32ErrorCode(struct_unpack('<I', data[20:24])[0])
+            return_code=Win32ErrorCode(struct_unpack('<I', data[:4])[0])
         )
 
     def __bytes__(self) -> bytes:
-        return self.service_handle + struct_pack('<I', self.return_code.value)
+        return struct_pack('<I', self.return_code.value)
 
 
 RDeleteServiceResponse.REQUEST_CLASS = RDeleteServiceRequest
