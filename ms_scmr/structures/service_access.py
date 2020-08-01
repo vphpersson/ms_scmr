@@ -6,8 +6,6 @@ from msdsalgs.utils import Mask
 
 
 class ServiceAccessFlag(IntFlag):
-    # TODO: This should not exist in the dynamic class, should it?
-    SERVICE_ALL_ACCESS = 0x000F01FF
     SERVICE_CHANGE_CONFIG = 0x00000002
     SERVICE_ENUMERATE_DEPENDENTS = 0x00000008
     SERVICE_INTERROGATE = 0x00000080
@@ -18,12 +16,14 @@ class ServiceAccessFlag(IntFlag):
     SERVICE_STOP = 0x00000020
     SERVICE_USER_DEFINED_CONTROL = 0x00000100
     SERVICE_SET_STATUS = 0x00008000
+    DELETE = 0x00010000
+    READ_CONTROL = 0x00020000
+    WRITE_DAC = 0x00040000
+    WRITE_OWNER = 0x00080000
 
 
 ServiceAccessFlagMask = Mask.make_class(
-    int_flag_class=IntFlag(
-        'ServiceAccessFlag',
-        ((enum_entry.name, enum_entry.value) for enum_entry in chain(AccessMask, ServiceAccessFlag))
-    ),
-    name='ServiceAccessFlagMask'
+    int_flag_class=ServiceAccessFlag,
+    name='ServiceAccessFlagMask',
+    prefix='SERVICE_'
 )
