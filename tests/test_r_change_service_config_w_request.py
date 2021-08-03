@@ -1,4 +1,4 @@
-from ms_scmr.operations.r_change_service_config_w import RChangeServiceConfigWRequest, StartType, ServiceType
+from ms_scmr.operations.r_change_service_config_w import RChangeServiceConfigWRequest, StartType
 
 # TODO: There are to many "zero-valued" attributes in these test.
 

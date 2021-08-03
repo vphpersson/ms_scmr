@@ -5,7 +5,9 @@ from struct import pack as struct_pack, unpack as struct_unpack
 from contextlib import asynccontextmanager
 
 from rpc.connection import Connection as RPCConnection
-from rpc.ndr import Pointer, UnidimensionalConformantArray, NullPointer, ConformantVaryingString
+from ndr.structures.pointer import Pointer, NullPointer
+from ndr.structures.unidimensional_conformant_array import UnidimensionalConformantArray
+from ndr.structures.conformant_varying_string import ConformantVaryingString
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
     Win32ErrorCode
 from rpc.utils.ndr import pad as ndr_pad, calculate_pad_length

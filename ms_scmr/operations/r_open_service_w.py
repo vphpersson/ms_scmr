@@ -5,7 +5,7 @@ from struct import unpack as struct_unpack, pack as struct_pack
 from contextlib import asynccontextmanager
 
 from rpc.connection import Connection as RPCConnection
-from rpc.ndr import ConformantVaryingString
+from ndr.structures.conformant_varying_string import ConformantVaryingString
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
     Win32ErrorCode
 from rpc.utils.ndr import pad as ndr_pad

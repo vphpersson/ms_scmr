@@ -1,9 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Tuple, Dict, Union, ClassVar
+from typing import Union, ClassVar
 from struct import pack as struct_pack, unpack as struct_unpack
 
-from rpc.ndr import Pointer, ConformantVaryingString
+from ndr.structures.pointer import Pointer
+from ndr.structures.conformant_varying_string import ConformantVaryingString
 
 from ms_scmr.structures.service_type import ServiceType
 from ms_scmr.structures.start_type import StartType
@@ -20,15 +21,15 @@ class QueryServiceConfigW:
     binary_path_name: str
     load_order_group: str
     tag_id: int
-    dependencies: Tuple[str, ...]
+    dependencies: tuple[str, ...]
     service_start_name: str
     display_name: str
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> Tuple[QueryServiceConfigW, int]:
+    def from_bytes(cls, data: bytes) -> tuple[QueryServiceConfigW, int]:
 
         string_names = ('binary_path_name', 'load_order_group', 'dependencies', 'service_start_name', 'display_name')
-        kwargs: Dict[str, Union[str, Tuple[str, ...]]] = {}
+        kwargs: dict[str, Union[str, dict[str, ...]]] = {}
         offset_variable = cls.STRUCTURE_SIZE
         for string_name in string_names:
             ndr_string = ConformantVaryingString.from_bytes(data=data[offset_variable:])

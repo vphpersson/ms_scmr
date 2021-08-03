@@ -4,7 +4,8 @@ from typing import ClassVar, Tuple, List
 from struct import pack as struct_pack, unpack as struct_unpack
 
 from rpc.connection import Connection as RPCConnection
-from rpc.ndr import ConformantVaryingString, Pointer, NullPointer
+from ndr.structures.pointer import Pointer, NullPointer
+from ndr.structures.conformant_varying_string import ConformantVaryingString
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
     Win32ErrorCode
 from rpc.utils.ndr import calculate_pad_length, pad as ndr_pad
