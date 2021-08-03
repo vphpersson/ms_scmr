@@ -1,7 +1,5 @@
 from enum import IntFlag
-from itertools import chain
 
-from msdsalgs.security_types.access_mask import AccessMask
 from msdsalgs.utils import Mask
 
 
@@ -24,6 +22,5 @@ class ServiceAccessFlag(IntFlag):
 
 ServiceAccessFlagMask = Mask.make_class(
     int_flag_class=ServiceAccessFlag,
-    name='ServiceAccessFlagMask',
-    prefix='SERVICE_'
+    name='ServiceAccessFlagMask'
 )
