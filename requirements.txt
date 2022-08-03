@@ -1,3 +1,3 @@
--e git+ssh://git@github.com/vphpersson/rpc.git#egg=rpc
--e git+ssh://git@github.com/vphpersson/msdsalgs.git#egg=msdsalgs
--e git+ssh://git@github.com/vphpersson/ndr.git#egg=ndr
+git+https://github.com/vphpersson/rpc.git#egg=rpc
+git+https://github.com/vphpersson/msdsalgs.git#egg=msdsalgs
+git+https://github.com/vphpersson/ndr.git#egg=ndr
