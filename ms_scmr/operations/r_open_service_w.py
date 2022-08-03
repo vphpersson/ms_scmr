@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import ClassVar, AsyncContextManager
+from typing import ClassVar, AsyncContextManager, ByteString
 from struct import unpack as struct_unpack, pack as struct_pack
 from contextlib import asynccontextmanager
 
@@ -8,7 +8,7 @@ from rpc.connection import Connection as RPCConnection
 from ndr.structures.conformant_varying_string import ConformantVaryingString
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
     Win32ErrorCode
-from rpc.utils.ndr import pad as ndr_pad
+from ndr.utils import pad as ndr_pad
 
 from ms_scmr.operations import Operation
 from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
@@ -24,7 +24,7 @@ class ROpenServiceWRequest(ClientProtocolRequestBase):
     desired_access: ServiceAccessFlagMask
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> ROpenServiceWRequest:
+    def from_bytes(cls, data: ByteString | memoryview) -> ROpenServiceWRequest:
 
         sc_manager_handle = data[:20]
         offset = 20
@@ -57,7 +57,7 @@ class ROpenServiceWResponse(ClientProtocolResponseBase):
     service_handle: bytes
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> ROpenServiceWResponse:
+    def from_bytes(cls, data: ByteString | memoryview) -> ROpenServiceWResponse:
         return cls(
             service_handle=data[:20],
             return_code=Win32ErrorCode(struct_unpack('<I', data[20:24])[0])
