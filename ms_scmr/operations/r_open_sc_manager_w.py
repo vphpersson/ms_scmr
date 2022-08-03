@@ -10,7 +10,7 @@ from ndr.structures.conformant_varying_string import ConformantVaryingString
 from ndr.structures.pointer import Pointer
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
     Win32ErrorCode
-from rpc.utils.ndr import pad as ndr_pad
+from ndr.utils import pad as ndr_pad
 
 from ms_scmr.operations import Operation
 from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest

@@ -8,7 +8,7 @@ from ndr.structures.pointer import Pointer, NullPointer
 from ndr.structures.conformant_varying_string import ConformantVaryingString
 from ndr.structures.unidimensional_conformant_array import UnidimensionalConformantArray
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, Win32ErrorCode
-from rpc.utils.ndr import calculate_pad_length, pad as ndr_pad
+from ndr.utils import calculate_pad_length, pad as ndr_pad
 
 from ms_scmr.operations import Operation
 from ms_scmr.structures.service_type import ServiceType

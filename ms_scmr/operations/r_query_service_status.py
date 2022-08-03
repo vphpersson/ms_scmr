@@ -57,3 +57,4 @@ async def r_query_service_status(
     """
 
     return await obtain_response(rpc_connection=rpc_connection, request=request, raise_exception=raise_exception)
+

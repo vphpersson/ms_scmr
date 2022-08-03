@@ -10,7 +10,7 @@ from ndr.structures.unidimensional_conformant_array import UnidimensionalConform
 from ndr.structures.conformant_varying_string import ConformantVaryingString
 from rpc.utils.client_protocol_message import ClientProtocolRequestBase, ClientProtocolResponseBase, obtain_response, \
     Win32ErrorCode
-from rpc.utils.ndr import pad as ndr_pad, calculate_pad_length
+from ndr.utils import pad as ndr_pad, calculate_pad_length
 
 from ms_scmr.operations import Operation
 from ms_scmr.operations.r_close_service_handle import r_close_service_handle, RCloseServiceHandleRequest
